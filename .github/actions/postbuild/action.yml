@@ -13,7 +13,7 @@ runs:
       shell: bash
       run: 
         docker load -i temperature.tar
-    - name: trivy scan
-      uses: aquasecurity/trivy-action@v1
+    - name: trivy scan image
+      uses: aquasecurity/trivy-action@v0.28.0
       with:
         image-ref: temperature:latest
