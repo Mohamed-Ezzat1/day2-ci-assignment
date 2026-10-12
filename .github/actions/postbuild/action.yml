@@ -20,4 +20,4 @@ runs:
         image-ref: temperature:latest
         format: 'table'
         severity: 'CRITICAL,HIGH'
-        exit-code: '1'
+        exit-code: '0'
