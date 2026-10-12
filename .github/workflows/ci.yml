@@ -1,0 +1,135 @@
+name: temp app test
+run-name: ${{github.actor}}-ci
+env:
+  APP_NAME: temperature
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      python-version:
+        type: choice
+        description: 'Python version to use'
+        required: true
+        default: '3.11'
+        options:
+          - '3.12'
+          - '3.13'
+      create-package:
+        type: boolean
+        description: 'Create package'
+        required: true
+        default: true
+  schedule:
+    - cron: '0 7 * * 1'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python ${{ github.event.inputs.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ github.event.inputs.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          pytest -v --junitxml=reports/junit.xml
+
+  package:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v7
+      - name: version
+        run: |
+          echo "version=0.1.${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
+        id: version
+      - name: package
+        if: ${{ github.event.inputs.create-package == 'true' }}
+        run: |
+          tar -czf dist/temperature-${{ needs.package.outputs.version }}.tar.gz temperature.py README.MD
+      - name: Upload package artifact
+        if: ${{ github.event.inputs.create-package == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+      - name: upload artifact
+        if: ${{ github.event.inputs.create-package == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: dist/temperature-${{ needs.package.outputs.version }}.tar.gz
+          if-no-files-found: error
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+
+  verify:
+    runs-on: ubuntu-latest
+    needs: package
+    steps:
+        - name: Download package artifact
+          if: ${{ github.event.inputs.create-package == 'true' }}
+          uses: actions/download-artifact@v3
+          with:
+            name: package
+        - name: Verify package
+          if: ${{ github.event.inputs.create-package == 'true' }}
+          run: |
+            tar -xzf dist/temperature-${{ needs.package.outputs.version }}.tar.gz
+            python3 -c "from temperature import celsius_to_fahrenheit as c; assert c(100) == 212; print('Package OK')"
+  report:
+    runs-on: ubuntu-latest
+    needs: [test, package, verify]
+    if: ${{ always() }}
+    env:
+      NOTIFY_ENABLED: ${{ secrets.NOTIFY_TOKEN != '' }}
+    steps:
+      - name: Generate test report
+        run: |
+          echo "this a repot title from vars ${{ vars.REPORT_TITLE }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "short_sha: ${GITHUB.SHA:0:7}" >> ${GITHUB_STEP_SUMMARY}
+          echo "event_name: ${{ github.event_name }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "app_name: ${{ env.APP_NAME }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "app_version: ${{ needs.package.outputs.version || 'N/A' }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "Generating test report..." >> ${GITHUB_STEP_SUMMARY}
+          echo "test job status: ${{ needs.test.result }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "package job status: ${{ needs.package.result }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "verify job status: ${{ needs.verify.result }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "Report generated successfully." >> ${GITHUB_STEP_SUMMARY}
+          if [ "${{ needs.test.result }}" == "failure" || "${{ needs.package.result }}" == "failure" || "${{ needs.verify.result }}" == "failure" ]; then
+            echo "One or more jobs failed." >> ${GITHUB_STEP_SUMMARY}
+          else
+            echo "All jobs succeeded." >> ${GITHUB_STEP_SUMMARY}
+          fi
+      - name: Send notification
+        if: ${{ env.NOTIFY_ENABLED == 'true' }}
+        env:
+          NOTIFY_TOKEN: ${{ secrets.NOTIFY_TOKEN }}
+        run: |
+          printf 'Notification sent (token length: %s)\n' "${#NOTIFY_TOKEN}"
+  pr-comment:
+    runs-on: ubuntu-latest
+    needs: package
+    if: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Comment on PR with package version
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+          --body "✅ CI passed. Package version ${{ needs.package.outputs.version }} is ready."
