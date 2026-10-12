@@ -1,0 +1,19 @@
+name: postbuild
+description: 'Post build action'
+runs:
+  using: "composite"
+  steps:
+    - name: install docker
+      uses: docker/setup-buildx-action@v3
+    - name: download docker image
+      uses: actions/download-artifact@v7
+      with:
+        name: temperature-docker-image
+    - name: load docker image
+      shell: bash
+      run: 
+        docker load -i temperature.tar
+    - name: trivy scan
+      uses: aquasecurity/trivy-action@v1
+      with:
+        image-ref: temperature:latest

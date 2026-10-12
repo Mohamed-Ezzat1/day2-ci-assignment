@@ -46,6 +46,13 @@ jobs:
       - name: Run tests
         run: |
           pytest -v --junitxml=reports/junit.xml
+      - name: my prebuild action
+        uses: ./.github/actions/prebuild
+        with:
+          python-version: ${{ github.event.inputs.python-version }}
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+      - name: my postbuild action
+        uses: ./.github/actions/postbuild
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
