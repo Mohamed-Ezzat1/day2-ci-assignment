@@ -46,6 +46,10 @@ jobs:
       - name: Run tests
         run: |
           pytest -v --junitxml=reports/junit.xml
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   package:
     runs-on: ubuntu-latest
