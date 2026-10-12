@@ -59,7 +59,7 @@ jobs:
       - name: package
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
         run: |
-          tar -czf dist/temperature-${{ needs.package.outputs.version }}.tar.gz temperature.py README.MD
+          tar -czf dist/temperature-${{ steps.version.outputs.version }}.tar.gz temperature.py README.md
       - name: Upload package artifact
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
         uses: actions/upload-artifact@v7
