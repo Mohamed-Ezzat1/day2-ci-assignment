@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: package
-          path: dist/temperature-${{ needs.package.outputs.version }}.tar.gz
+          path: dist/temperature-${{ steps.version.outputs.version }}.tar.gz
           if-no-files-found: error
     outputs:
       version: ${{ steps.version.outputs.version }}
