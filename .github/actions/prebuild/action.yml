@@ -35,11 +35,11 @@ runs:
     - name: type check
       shell: bash
       run: |
-        mypy temperature
+        mypy temperature.py
     - name: pytest coverage
       shell: bash
       run: |
-        pytest --cov=temperature --cov-report=xml  
+        pytest --cov=temperature.py --cov-report=xml  
     - name: sonar coverage
       uses: SonarSource/sonarqube-scan-action@v6
       env:
