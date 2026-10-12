@@ -69,3 +69,6 @@ runs:
       with:
         scan-type: 'fs'
         scan-path: '.'
+        format: 'table'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '1'
