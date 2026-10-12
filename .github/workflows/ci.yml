@@ -59,6 +59,7 @@ jobs:
       - name: package
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
         run: |
+          mkdir -p dist
           tar -czf "dist/temperature-${{ steps.version.outputs.version }}.tar.gz" temperature.py README.md
       - name: Upload package artifact
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
