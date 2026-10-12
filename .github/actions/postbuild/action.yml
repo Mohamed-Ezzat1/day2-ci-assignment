@@ -14,7 +14,7 @@ runs:
       run: 
         docker load -i temperature.tar
     - name: trivy scan image
-      uses: aquasecurity/trivy-action@v0.28.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         scan-type: 'image'
         image-ref: temperature:latest
