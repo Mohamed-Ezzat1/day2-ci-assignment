@@ -62,12 +62,12 @@ jobs:
           tar -czf dist/temperature-${{ needs.package.outputs.version }}.tar.gz temperature.py README.MD
       - name: Upload package artifact
         if: ${{ github.event.inputs.create-package == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: package
       - name: upload artifact
         if: ${{ github.event.inputs.create-package == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: package
           path: dist/temperature-${{ needs.package.outputs.version }}.tar.gz
@@ -82,7 +82,7 @@ jobs:
     steps:
         - name: Download package artifact
           if: ${{ github.event.inputs.create-package == 'true' }}
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v7
           with:
             name: package
         - name: Verify package
