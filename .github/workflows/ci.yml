@@ -57,16 +57,16 @@ jobs:
           echo "version=0.1.${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
         id: version
       - name: package
-        if: ${{ github.event.inputs.create-package == 'true' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
         run: |
           tar -czf dist/temperature-${{ needs.package.outputs.version }}.tar.gz temperature.py README.MD
       - name: Upload package artifact
-        if: ${{ github.event.inputs.create-package == 'true' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: package
       - name: upload artifact
-        if: ${{ github.event.inputs.create-package == 'true' }}
+        if: ${{ github.event_name != 'workflow_dispatch' ||github.event.inputs.create-package == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: package
@@ -81,12 +81,12 @@ jobs:
     needs: package
     steps:
         - name: Download package artifact
-          if: ${{ github.event.inputs.create-package == 'true' }}
+          if: ${{ github.event_name != 'workflow_dispatch' ||github.event.inputs.create-package == 'true' }}
           uses: actions/download-artifact@v7
           with:
             name: package
         - name: Verify package
-          if: ${{ github.event.inputs.create-package == 'true' }}
+          if: ${{ github.event_name != 'workflow_dispatch' ||github.event.inputs.create-package == 'true' }}
           run: |
             tar -xzf dist/temperature-${{ needs.package.outputs.version }}.tar.gz
             python3 -c "from temperature import celsius_to_fahrenheit as c; assert c(100) == 212; print('Package OK')"
