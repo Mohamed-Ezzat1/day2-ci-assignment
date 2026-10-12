@@ -60,7 +60,7 @@ runs:
       run: 
         docker save temperature:latest -o temperature.tar
     - name: upload docker image
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: temperature-docker-image
         path: temperature.tar
