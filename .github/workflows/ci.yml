@@ -61,11 +61,6 @@ jobs:
         run: |
           mkdir -p dist
           tar -czf "dist/temperature-${{ steps.version.outputs.version }}.tar.gz" temperature.py README.md
-      - name: Upload package artifact
-        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create-package == 'true' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: package
       - name: upload artifact
         if: ${{ github.event_name != 'workflow_dispatch' ||github.event.inputs.create-package == 'true' }}
         uses: actions/upload-artifact@v7
